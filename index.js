@@ -3,7 +3,6 @@ import path from "path";
 import mongoose from "mongoose";
 import cookieParser from "cookie-parser";
 import jwt from "jsonwebtoken";
-import bcrypt from bcryptjs;
 
 const app = express();
 
@@ -26,7 +25,8 @@ mongoose
 const userSchema = new mongoose.Schema(
     {
         name: String,
-        email: String
+        email: String,
+        password: String
     }
 );
 const User = mongoose.model("User",userSchema);
@@ -34,12 +34,14 @@ const User = mongoose.model("User",userSchema);
 
 
 // let users = [];
-const isAuthenticated = (req, res, next) => {
+const isAuthenticated = async (req, res, next) => {
     const {token} = req.cookies;
     if(token){
-        res.render("logout");
-    }else{
+        const decoded = jwt.verify(token,"hghguoshddv");
+        req.user = await User.findById(decoded._id);
         next();
+    }else{
+        res.render("login");
     }
 };
 
@@ -50,34 +52,44 @@ const isAuthenticated = (req, res, next) => {
 
 // routes
 app.get("/", (req, res) => {
-    res.render("index",{text:"Home"});
+    res.render("index",{text:"World"});
 });
-app.post("/contact", async (req, res) => {
-    const {name, email} = req.body;
-    await User
-    .create({name, email})
-    .then(() => {
-        res.send("message sent successfully!");
-    });
-});
-
-
-
-
 
 app.get("/login", isAuthenticated, (req, res) => {
-    res.render("login");
+    res.render("logout",{userName:req.user.name});
 });
 app.post("/login", async (req, res) => {
-    const {name, email} = req.body;
-    const user = await User
-    .create({name, email})
+    const {email, password} = req.body;
 
-    res.cookie("token", user._id,{
+    const user = await User.findOne({email});
+    if(!user){
+        return res.render("register",{email});
+    }
+    const isMatched = password===user.password;
+    if(!isMatched){
+        return res.render("login", {email, message:"Incorrect password"});
+    }
+
+    const token = jwt.sign({_id: user._id},"hghguoshddv");
+    res.cookie("token", token,{
         httpOnly: true, 
         expires: new Date(Date.now()+60*1000),
     });
-    res.redirect("/login");
+    res.render("logout",{userName: user.name});
+})
+
+app.get("/register", (req, res) => {
+    res.render("register");
+});
+app.post("/register", async (req, res) => {
+    const {name, email, password} = req.body;
+    let user = await User.findOne({email});
+    if(!user){
+        // const hashedpwd = bcrypt(password,10);
+        // console.log(bcrypt(password,10));
+        user = await User.create({name, email, password});
+    }
+    res.render("login", {email});
 });
 
 app.get("/logout", (req, res) => {

@@ -8,11 +8,35 @@
 </head>
 <body>
     <h1>Welcome <%=locals.text%> </h1>
-    <form action="/contact" method="post">
-        <h1>CONATCT US</h1>
-        <input type="text" name="name" placeholder="Name">
-        <input type="text" name="email" placeholder="Email">
-        <button type="submit">Send</button>
+    <form action="/login" method="get">
+        <button 
+            style="
+            margin: 10px;
+            border: none;
+            border-radius: 20px;
+            height: 30px;
+            width:100px;
+            background-color: purple;
+            color: white;
+            font-size: 16px;"
+        >
+        Login
+        </button>
+    </form>
+    <form action="/register" method="get">
+        <button 
+            style="
+            margin: 10px;
+            border: none;
+            border-radius: 20px;
+            height: 30px;
+            width:100px;
+            background-color: purple;
+            color: white;
+            font-size: 16px;"
+        >
+        Register
+        </button>
     </form>
 </body>
 </html>
